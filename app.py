@@ -21,11 +21,17 @@ def send_line_message(text):
     url = "https://api.line.me/v2/bot/message/push"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}"
+        "Authorization": f"Bearer " + CHANNEL_ACCESS_TOKEN
     }
     payload = {"to": GROUP_ID, "messages": [{"type": "text", "text": text}]}
-    res = requests.post(url, headers=headers, json=payload)
-    print("🔔 發送狀態：", res.status_code)
+    try:
+        res = requests.post(url, headers=headers, json=payload)
+        if res.status_code != 200:
+            print(f"❌ 發送失敗（{res.status_code}）：{res.text}")
+        else:
+            print("🔔 發送狀態：200")
+    except Exception as e:
+        print("❌ 發送過程錯誤：", e)
 
 
 def fetch_article_content(link):
@@ -36,29 +42,35 @@ def fetch_article_content(link):
         soup = BeautifulSoup(resp.text, "html.parser")
         content_div = soup.find("div", id="main-content")
         return content_div.get_text(strip=True) if content_div else ""
-    except:
+    except Exception as e:
+        print("❌ 取得內文失敗：", e)
         return ""
 
 
 def monitor_rss():
+    print("🟢 monitor_rss 啟動中...")
     while True:
-        feed = feedparser.parse(RSS_URL)
-        for entry in feed.entries:
-            title = entry.title.strip()
-            link = entry.link
+        print("⏱ 正在檢查 RSS 更新...")
+        try:
+            feed = feedparser.parse(RSS_URL)
+            for entry in feed.entries:
+                title = entry.title.strip()
+                link = entry.link
 
-            if link in sent_links:
-                continue
+                if link in sent_links:
+                    continue
 
-            content = fetch_article_content(link)
-            preview = content[:100] + ("..." if len(content) > 100 else "")
-            msg = ("🆕 PTT 有新文章！\n\n"
-                   f"📌 標題：{title}\n"
-                   f"🔗 連結：{link}\n\n"
-                   f"📝 內文摘要：\n{preview}")
-            send_line_message(msg)
-            sent_links.add(link)
-            print(f"✅ 已推播：{title}")
+                content = fetch_article_content(link)
+                preview = content[:100] + ("..." if len(content) > 100 else "")
+                msg = ("🆕 PTT 有新文章！\n\n"
+                       f"📌 標題：{title}\n"
+                       f"🔗 連結：{link}\n\n"
+                       f"📝 內文摘要：\n{preview}")
+                send_line_message(msg)
+                sent_links.add(link)
+                print(f"✅ 已推播：{title}")
+        except Exception as e:
+            print("❌ RSS 檢查錯誤：", e)
 
         time.sleep(10)
 
@@ -75,5 +87,5 @@ def webhook():
     return "OK"
 
 
-# 背景監控
+# ✅ 背景監控
 threading.Thread(target=monitor_rss, daemon=True).start()
