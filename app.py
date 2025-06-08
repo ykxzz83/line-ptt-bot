@@ -11,27 +11,45 @@ app = Flask(__name__)
 
 # ====== 設定 ======
 RSS_URL = "https://www.ptt.cc/atom/Drama-Ticket.xml"
-GROUP_ID = "Cb3407b511a09301d4f2617a500ea5ce1"
-CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+# GROUP_ID = "Cb3407b511a09301d4f2617a500ea5ce1"
+# CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 sent_links = set()
 
 
-def send_line_message(text):
-    url = "https://api.line.me/v2/bot/message/push"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer " + CHANNEL_ACCESS_TOKEN
-    }
-    payload = {"to": GROUP_ID, "messages": [{"type": "text", "text": text}]}
+# ✅ 改用 Telegram 發送訊息
+def send_telegram_message(text):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "HTML"}
     try:
-        res = requests.post(url, headers=headers, json=payload)
+        res = requests.post(url, data=payload)
         if res.status_code != 200:
             print(f"❌ 發送失敗（{res.status_code}）：{res.text}")
         else:
             print("🔔 發送狀態：200")
     except Exception as e:
         print("❌ 發送過程錯誤：", e)
+
+
+# （以下 LINE 用法已註解）
+# def send_line_message(text):
+#     url = "https://api.line.me/v2/bot/message/push"
+#     headers = {
+#         "Content-Type": "application/json",
+#         "Authorization": f"Bearer {CHANNEL_ACCESS_TOKEN}"
+#     }
+#     payload = {"to": GROUP_ID, "messages": [{"type": "text", "text": text}]}
+#     try:
+#         res = requests.post(url, headers=headers, json=payload)
+#         if res.status_code != 200:
+#             print(f"❌ 發送失敗（{res.status_code}）：{res.text}")
+#         else:
+#             print("🔔 發送狀態：200")
+#     except Exception as e:
+#         print("❌ 發送過程錯誤：", e)
 
 
 def fetch_article_content(link):
@@ -66,7 +84,7 @@ def monitor_rss():
                        f"📌 標題：{title}\n"
                        f"🔗 連結：{link}\n\n"
                        f"📝 內文摘要：\n{preview}")
-                send_line_message(msg)
+                send_telegram_message(msg)  # ✅ 改這裡
                 sent_links.add(link)
                 print(f"✅ 已推播：{title}")
         except Exception as e:
@@ -83,7 +101,7 @@ def home():
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.get_json()
-    print("📦 收到 LINE 事件：", json.dumps(data, indent=2, ensure_ascii=False))
+    print("📦 收到請求：", json.dumps(data, indent=2, ensure_ascii=False))
     return "OK"
 
 
