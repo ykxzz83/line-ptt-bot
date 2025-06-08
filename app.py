@@ -68,28 +68,39 @@ def fetch_article_content(link):
 def monitor_rss():
     print("🟢 monitor_rss 啟動中...")
     while True:
-        print("⏱ 正在檢查 RSS 更新...")
+        print("\n⏱ 正在檢查 RSS 更新...\n")
         try:
             feed = feedparser.parse(RSS_URL)
-            for entry in feed.entries:
+            print(f"📥 共取得 {len(feed.entries)} 篇文章")
+
+            for i, entry in enumerate(feed.entries):
                 title = entry.title.strip()
                 link = entry.link
+                print(f"\n📄 第 {i+1} 篇：{title}")
+                print(f"🔗 連結：{link}")
 
                 if link in sent_links:
+                    print("⏭ 已發送過，略過")
                     continue
 
+                print("📑 抓取內文中...")
                 content = fetch_article_content(link)
                 preview = content[:100] + ("..." if len(content) > 100 else "")
+
                 msg = ("🆕 PTT 有新文章！\n\n"
                        f"📌 標題：{title}\n"
                        f"🔗 連結：{link}\n\n"
                        f"📝 內文摘要：\n{preview}")
-                send_telegram_message(msg)  # ✅ 改這裡
+
+                print("📤 準備發送訊息到 Telegram...")
+                send_telegram_message(msg)
                 sent_links.add(link)
-                print(f"✅ 已推播：{title}")
+                print("✅ 發送完成 ✅")
+
         except Exception as e:
             print("❌ RSS 檢查錯誤：", e)
 
+        print("\n🕒 等待 10 秒後再次檢查...\n")
         time.sleep(10)
 
 
