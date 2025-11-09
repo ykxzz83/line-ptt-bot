@@ -88,8 +88,8 @@ def monitor_rss():
                 preview = content[:100] + ("..." if len(content) > 100 else "")
 
                 msg = (f"📌 標題：{title}\n"
-                       f"🔗 連結：{link}\n\n"
-                       f"📝 內文摘要：\n{preview}")
+                       f"📝 內文摘要：\n{preview}"
+                       f"🔗 連結：{link}\n\n")
 
                 print("📤 準備發送訊息到 Telegram...")
                 send_telegram_message(msg)
