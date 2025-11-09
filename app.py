@@ -87,8 +87,7 @@ def monitor_rss():
                 content = fetch_article_content(link)
                 preview = content[:100] + ("..." if len(content) > 100 else "")
 
-                msg = ("🆕 PTT 有新文章！\n\n"
-                       f"📌 標題：{title}\n"
+                msg = (f"📌 標題：{title}\n"
                        f"🔗 連結：{link}\n\n"
                        f"📝 內文摘要：\n{preview}")
 
