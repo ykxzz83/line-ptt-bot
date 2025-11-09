@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 # ====== 自訂設定 ======
 RSS_URL = "https://www.ptt.cc/atom/Drama-Ticket.xml"
-KEYWORDS = ["五月天", "讓票", "徵票", "原價"]
+KEYWORDS = ["五月天", "讓票", "徵票", "MayDay", "mayday", "Mayday"]
 GROUP_ID = "Cb3407b511a09301d4f2617a500ea5ce1"
 CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
@@ -56,8 +56,7 @@ def monitor_rss():
 
             if any(keyword in full_text for keyword in KEYWORDS):
                 preview = content[:100] + ("..." if len(content) > 100 else "")
-                msg = ("🎯 PTT 有新文章符合關鍵字！\n\n"
-                       f"📌 標題：{title}\n"
+                msg = (f"📌 標題：{title}\n"
                        f"🔗 連結：{link}\n\n"
                        f"📝 內文摘要：\n{preview}")
                 send_line_message(msg)
